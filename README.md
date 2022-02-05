@@ -92,6 +92,10 @@ In Production:
 npm start
 ```
 
+### Query the server
+
+Use the graphql sandbox/playground to view available calls and query the server. By default this is at port 5001, `http://localhost:5001`
+
 ## Docker Notes
 
 When building, you will need to pass a Github Token as an ARG to the build process, so that it can pull the required packages from private repos.
