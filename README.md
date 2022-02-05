@@ -51,7 +51,7 @@ Password resets function similarly. Account holder request a new code, which is 
 
 ### Purchase Access and Clone Repo
 
-The `@The-Devoyage/accounts` repo is a private repository. To gain instant access to the code base, complete the [Basetools Checkout]() process. Once completed, you will be instantly added as a collaborator to the project allowing you to clone the repo.
+The `@The-Devoyage/accounts` repo is a private repository. To gain instant access to the code base, complete the [Basetools Checkout](https://basetools.io/checkout/v0cv56df) process. Once completed, you will be instantly added as a collaborator to the project allowing you to clone the repo.
 
 ### Install Dependencies
 
