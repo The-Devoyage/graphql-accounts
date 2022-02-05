@@ -1,6 +1,6 @@
 {
   "name": "@the-devoyage/graphql-accounts",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "",
   "main": "server.js",
   "scripts": {
