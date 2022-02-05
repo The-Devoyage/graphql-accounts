@@ -57,7 +57,7 @@ The `@The-Devoyage/accounts` repo is a private repository. To gain instant acces
 
 1. Required External Dependencies
 
-- `@The-Devoyage/graphql-gateway` - A Apollo Gateway Server pre-configured to handle the authentication and authorization for this service. [Purchase Access](https://basetools.io/checkout/XGUVNNGr)
+- `@The-Devoyage/graphql-gateway` - An Apollo Gateway Server pre-configured to handle the authentication and authorization for this service. [Purchase Access](https://basetools.io/checkout/XGUVNNGr)
 - `@The-Devoyage/mongo-filter-generator` - Adds the pagination and filtering abilities to the service. [Purchase Access](https://basetools.io/checkout/vyOL9ATx)
 - `@The-Devoyage/graphql-mailer` - A mailer microservice to handle 2fa emailing. [Purchase Access](https://basetools.io/checkout/8G2fCyXe)
 - `@The-Devoyage/mailer-connect` - A simple package to streamline connecting to the mailer service. [Purchase Access](https://basetools.io/checkout/wp7QYNNO)
