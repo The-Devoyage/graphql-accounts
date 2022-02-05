@@ -1,0 +1,344 @@
+import { checkAuth, createActivationCode } from "@src/helpers";
+import { Account } from "@src/models";
+import { Validate } from "@src/validate";
+import { UserInputError } from "apollo-server";
+import { MutationResolvers } from "types/generated";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { mailer } from "@src/helpers/mailer";
+
+export const Mutation: MutationResolvers = {
+  login: async (_, args) => {
+    const { errors, isValid } = Validate.Accounts.Login(args.loginInput);
+
+    try {
+      if (!isValid) {
+        throw new UserInputError("Invalid data.", { errors });
+      }
+
+      const account = await Account.findOne({
+        email: args.loginInput.email,
+      });
+
+      if (!account) {
+        throw new Error("Something went wrong when logging in.");
+      }
+
+      if (!account?.activation?.verified) {
+        throw new Error("Verify your email before logging in.");
+      }
+
+      if (!account.password) {
+        throw new Error("Reset your password to continue.");
+      }
+
+      const authenticated = await bcrypt.compare(
+        args.loginInput.password,
+        account.password
+      );
+
+      if (authenticated) {
+        const payload = {
+          account: { _id: account._id, email: account.email },
+        };
+
+        if (process.env.JWT_ENCRYPTION_KEY) {
+          const token = jwt.sign(payload, process.env.JWT_ENCRYPTION_KEY, {
+            expiresIn: "10h",
+          });
+
+          if (token) {
+            const accountResponse = await Account.findOne({
+              _id: account._id,
+            }).select("-password -activation.code");
+            if (!accountResponse) {
+              throw new Error("Something went wrong when logging in.");
+            }
+            return { token: token, account: accountResponse };
+          } else {
+            throw new Error("Something went wrong when logging in.");
+          }
+        } else {
+          throw new Error("Something went wrong when logging in.");
+        }
+      } else {
+        throw new Error("Something went wrong when logging in.");
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  register: async (_parent, args) => {
+    const { errors, isValid } = Validate.Accounts.Register(args.registerInput);
+    try {
+      if (!isValid) {
+        throw new UserInputError("Invalid data.", { errors });
+      }
+
+      const exists = await Account.exists({
+        email: args.registerInput?.email,
+      });
+
+      if (exists) {
+        throw new Error("Account already exists");
+      }
+
+      const newAccount = new Account(args.registerInput);
+
+      newAccount.activation = createActivationCode();
+      newAccount.password = await bcrypt.hash(args.registerInput.password, 12);
+
+      await newAccount.save();
+
+      const account = await Account.findById(newAccount._id).select(
+        "-password -activation.code"
+      );
+
+      if (!account) {
+        throw new Error("Can't find account.");
+      }
+
+      mailer.send({
+        triggeredContent: {
+          trigger: "REGISTER",
+          to: account.email,
+          variables: account,
+        },
+        defaultContent: {
+          to: account.email,
+          html: `<h3>Welcome!</h3><p>Your code is ${newAccount.activation.code}</p>`,
+          plainText: `Welcome! Your activation code is ${newAccount.activation.code}`,
+          subject: "Thanks for signing up!",
+        },
+      });
+
+      return account;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  verifyEmail: async (_parent, args) => {
+    const { errors, isValid } = Validate.Accounts.VerifyEmail(
+      args.verifyEmailInput
+    );
+    if (!isValid) {
+      throw new UserInputError("Invalid data.", { errors });
+    }
+    try {
+      if (!args.verifyEmailInput.email || !args.verifyEmailInput.code) {
+        throw new Error("Incomplete data");
+      }
+
+      const account = await Account.findOne({
+        email: args.verifyEmailInput.email,
+      });
+
+      if (!account) {
+        throw new Error("Account does not exist");
+      }
+
+      if (
+        account.activation?.limit &&
+        args.verifyEmailInput.code === account.activation.code &&
+        account.activation.limit > Date.now()
+      ) {
+        const updatedAccount = await Account.findByIdAndUpdate(
+          { _id: account._id },
+          { $set: { "activation.verified": true } },
+          { new: true }
+        ).select("-password -activation.code");
+
+        if (!updatedAccount) {
+          throw new Error("Could not update account.");
+        }
+
+        mailer.send({
+          triggeredContent: {
+            to: account.email,
+            trigger: "VERIFY_EMAIL",
+            variables: account,
+          },
+          defaultContent: {
+            to: account.email,
+            subject: "Email Verified",
+            plainText: "Your email has been verified!",
+            html: "<h3>Success!</h3><p>Your email has been verified!</p>",
+          },
+        });
+
+        return updatedAccount;
+      } else {
+        throw new Error(
+          "Could not verifiy, please reset your activation code."
+        );
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  resetPassword: async (_parent, args) => {
+    const { errors, isValid } = Validate.Accounts.ResetPassword(
+      args.resetInput
+    );
+    if (!isValid) {
+      throw new UserInputError("Invalid data.", { errors });
+    }
+    try {
+      const account = await Account.findOne({ email: args.resetInput.email });
+
+      if (!account) {
+        throw new Error("Something went wrong when resetting password.");
+      }
+
+      if (
+        account?.activation?.limit &&
+        account.activation.code === args.resetInput.code &&
+        account.activation.limit > Date.now()
+      ) {
+        const hashed = await bcrypt.hash(args.resetInput.password, 12);
+
+        const updatedAccount = await Account.findByIdAndUpdate(
+          { _id: account._id },
+          { $set: { password: hashed } },
+          { new: true }
+        ).select("-password -activation.code");
+
+        if (!updatedAccount) {
+          throw new Error("Something went wrong when saving the changes.");
+        }
+
+        mailer.send({
+          triggeredContent: {
+            to: updatedAccount.email,
+            trigger: "PASSWORD_RESET",
+            variables: account,
+          },
+          defaultContent: {
+            to: updatedAccount.email,
+            html: "<h3>Success!</h3><p>Your password has been reset.</p>",
+            plainText: "Success! Your password has been reset!",
+            subject: "Password Reset",
+          },
+        });
+
+        return updatedAccount;
+      } else if (
+        account?.activation?.limit &&
+        account?.activation.limit < Date.now()
+      ) {
+        throw new Error(
+          "The activation code expired - please request a new code and try again."
+        );
+      } else if (
+        account?.activation?.limit &&
+        account.activation.limit > Date.now() &&
+        account.activation.code !== args.resetInput.code
+      ) {
+        throw new Error("Incorrect activation code.");
+      } else {
+        throw new Error("Something went wrong when resetting your password.");
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  resetActivationCode: async (_parent, args) => {
+    const { errors, isValid } = Validate.Accounts.ResetActivationCode(
+      args.resetCodeInput
+    );
+    if (!isValid) {
+      throw new UserInputError("Invalid data.", { errors });
+    }
+    try {
+      if (!args.resetCodeInput.email) {
+        throw new Error("Please provide a valid email.");
+      }
+      const account = await Account.findOne({
+        email: args.resetCodeInput.email,
+      });
+
+      if (!account) {
+        throw new Error(
+          "Something went wrong when resetting the activation code."
+        );
+      }
+
+      const activation = createActivationCode();
+
+      const updatedAccount = await Account.findOneAndUpdate(
+        { _id: account._id },
+        { $set: { activation } },
+        { new: true }
+      ).select("-password -activation.code");
+
+      if (!updatedAccount) {
+        throw new Error("Soemthing went wrong when saving new updates.");
+      }
+
+      mailer.send({
+        triggeredContent: {
+          trigger: "RESET_ACTIVATION",
+          to: account.email,
+          variables: account,
+        },
+        defaultContent: {
+          to: account.email,
+          html: `<h3>Success!</h3><p>Your new code is ${account.activation.code}</p>`,
+          plainText: `Welcome! Your activation code is ${account.activation.code}`,
+          subject: "New Activation Code!",
+        },
+      });
+
+      return updatedAccount;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+  updateEmail: async (_parent, args, context) => {
+    const { isValid, errors } = Validate.Accounts.UpdateEmail(
+      args.updateEmailInput
+    );
+
+    try {
+      checkAuth({ context });
+      if (!isValid) {
+        throw new UserInputError("Invalid data.", { errors });
+      }
+
+      const account = await Account.findByIdAndUpdate(
+        { _id: context.token.account?._id },
+        { email: args.updateEmailInput.email, activation: { verified: false } },
+        { new: true }
+      ).select("-password -activation.code");
+
+      if (!account) {
+        throw new Error("Something went wrong when updating your account.");
+      }
+
+      mailer.send({
+        triggeredContent: {
+          trigger: "UPDATE_EMAIL",
+          to: account.email,
+          variables: account,
+        },
+        defaultContent: {
+          subject: "Email Updated",
+          to: account.email,
+          plainText:
+            "Your email has been updated. Please re-verify your account.",
+          html: "<h3>Success!</h3><p>Your email has been updated. Please re-verify your account.</p>",
+        },
+      });
+
+      return account;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  },
+};
