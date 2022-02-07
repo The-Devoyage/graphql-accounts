@@ -1,4 +1,4 @@
-# @The-Devoyage/graphql-accounts
+# @the-devoyage/graphql-accounts
 
 An easy to spin up accounts microservice that can be used as a ready to go service for managing authentication or a starting point to customize your own accounts service.
 
@@ -116,7 +116,7 @@ docker build -t --build-arg GTIHUB_TOKEN=${GITHUB_TOKEN} .
 
 All environment variables are saved in the root of this repo in a file called `.env.example`. Move this file to `.env` and fill in the variables.
 
-5. Start the server:
+### Start the server:
 
 In Development:
 
@@ -156,8 +156,8 @@ interface DecodedToken {
 
 ## Recommended Services
 
-- `@the-devoyage/graphql-users` - A Users Microservice to manage the members of accounts. While the `@the-devoyage/graphql-accounts` service does handle account authentication, it does not handle user authentication, meaning you will need to provide the user property to the request headers of this service. The recommended users service is compatible with this service, and works out of the box. [Purchase Access](https://basetools.io/checkout/dQe81uv0)
+- `@the-devoyage/graphql-users` - A Users Microservice to manage the members of accounts. While the `@the-devoyage/graphql-accounts` service does handle account authentication, it does not handle user authentication, meaning you will need to provide the user property to the request headers of this service. The recommended users service is compatible with this service. [Purchase Access](https://basetools.io/checkout/dQe81uv0)
 
-- `@the-devoyage/graphql-gateway` - A ready to go apollo gateway server with preconfigured features such as user authorization, file serving/uploading, and supergraph configuration. [Purchase Access](https://basetools.io/checkout/XGUVNNGr)
+- `@the-devoyage/graphql-gateway` - An apollo gateway server with pre-configured features such as user authorization, file routing/file upload routing, and supergraph configuration. This repo is compatible with this service and can act as the gateway for this service. [Purchase Access](https://basetools.io/checkout/XGUVNNGr)
 
-- `@the-devoyage/graphql-mailer` - A ready to go mailer micro-service (GMAIL/GOOGLE) that allows templated and dynamic content to be sent to the users of your system. [Purchase Access](https://basetools.io/checkout/8G2fCyXe)
+- `@the-devoyage/graphql-mailer` - An automated mailer micro-service (GMAIL/GOOGLE) that allows templated and dynamic content to be sent to the users of your system. This repo is compatible with this service and the `mailer-connect` package that this service uses. [Purchase Access](https://basetools.io/checkout/8G2fCyXe)
