@@ -1,6 +1,6 @@
 # @The-Devoyage/graphql-accounts
 
-An easy to spin up accounts microservice that can be used as a ready to go service or a starting point to customize your own accounts service.
+An easy to spin up accounts microservice that can be used as a ready to go service for managing authentication or a starting point to customize your own accounts service.
 
 ## Features
 
@@ -25,42 +25,66 @@ type Activation {
 }
 ```
 
-### Get Accounts
+### Resolvers
 
-Logged in account holders can `getMyAccount` or check their `isAuthenticated` status. To fetch a list of accounts, you must have a User Property (Separate Service) with an Admin Level Role (1). When requesting accounts you will receive a paginated and filterable list of accounts.
+- Register - Creates a new unverified account.
 
-### Register
+- Login - If valid credentials, returns a JSON Web Token along with Account Details. Requires verified account.
 
-Any source may create/register an account with email and password. Emails must be unique in the database.
+- Get My Account - Returns the account of the authenticated account-holder.
 
-### Account Login
+- Get Accounts - Requires User Role equal to 1, admin level. Returns a paginated and filterable list of all accounts in the database.
 
-Account Holders can use an email and password combination to receive an encoded JSON Web Token. The JWT can then be passed to a Gateway, such as our [@The-Devoyage/graphql-gateway](https://basetools.io/checkout/XGUVNNGr) repo, to handle authentication and authorization.
+- Reset Password - Resets an account holders password - requires email to be re-verified if reset.
+
+- Update Email - Updates a user's email. Requires email to be re-verified after the update is complete.
+
+- Verify Email - If credentials are valid, the state of the Account Verified Status is updated to true, allowing user to login.
+
+- Reset Activation Code - Updates a time sensitive activation code, and un-verifies the requested account.
+
+### Security
+
+**Running The Server**
+
+You should never expose the accounts service directly to the public. Instead it should sit behind a gateway, which handles authorization parsing.
+
+If you need a quick and easy gateway to add to your API, the `@The-Devoyage/graphql-gateway` is an Apollo Gateway Server pre-configured to handle the authorization for this service. [Purchase Access](https://basetools.io/checkout/XGUVNNGr) to clone this gateway repository.
+
+**Passwords in the Database**
 
 Passwords are hashed and salted before being saved to a mongo database. Provide the mongo URI in the Environment Variables to connect the database.
 
-### Password Reset - Activation Codes - 2fa Verification
-
 All new accounts are saved with a status of `activation.verified: false` for security.
 
-To verify, users receive a code by email that can be used to verify their account. The code will not send unless a mailer service is connected. The default mailer service, pre-configured, uses our repo, [@The-Devoyage/graphql-mailer](https://basetools.io/checkout/8G2fCyXe).
+### Automated Emails Webhooks
 
-Password resets function similarly. Account holder request a new code, which is sent to their email. They can then use the new code to reset their password and re-verify their account.
+Email webhooks are triggered when an request is completed, allowing you to connect your own external Mailer service.
+
+Webhooks are posted with the `@the-devoyage/mailer-connect` package, to a URI that is set within the environment variables.
+
+The following functions will trigger the mailer webhook:
+
+- Register Success - Account holder receives email with verification code.
+- Password Reset - Account holder receives email with verification code.
+- Verify Email - Account holder receives notification of success.
+- Reset Activation Code - Account holder receives email with verification code.
+
+If you need a easy to start up Mailer Service, the [@The-Devoyage/graphql-mailer](https://basetools.io/checkout/8G2fCyXe) service is configured to work with this service and with the mailer-connect package out of the box.
 
 ## Usage
 
 ### Purchase Access and Clone Repo
 
-The `@The-Devoyage/accounts` repo is a private repository. To gain instant access to the code base, complete the [Basetools Checkout](https://basetools.io/checkout/v0cv56df) process. Once completed, you will be instantly added as a collaborator to the project allowing you to clone the repo.
+The `@the-devoyage/accounts` repo is a private repository. To gain instant access to the code base, complete the [Basetools Checkout](https://basetools.io/checkout/v0cv56df) process. Once completed, you will be instantly added as a collaborator, allowing you to clone the repository.
 
 ### Install Dependencies
 
 1. Required External Dependencies
 
-- `@The-Devoyage/graphql-gateway` - An Apollo Gateway Server pre-configured to handle the authentication and authorization for this service. [Purchase Access](https://basetools.io/checkout/XGUVNNGr)
-- `@The-Devoyage/mongo-filter-generator` - Adds the pagination and filtering abilities to the service. [Purchase Access](https://basetools.io/checkout/vyOL9ATx)
-- `@The-Devoyage/graphql-mailer` - A mailer microservice to handle 2fa emailing. [Purchase Access](https://basetools.io/checkout/8G2fCyXe)
-- `@The-Devoyage/mailer-connect` - A simple package to streamline connecting to the mailer service. [Purchase Access](https://basetools.io/checkout/wp7QYNNO)
+- `@the-devoyage/mongo-filter-generator` - Adds the pagination and filtering abilities to the service. [Purchase Access](https://basetools.io/checkout/vyOL9ATx)
+
+- `@the-devoyage/mailer-connect` - A simple package to streamline connecting to the mailer service and posting automated email webhooks. [Purchase Access](https://basetools.io/checkout/wp7QYNNO)
 
 2. Once you have access to the required repos above, be sure to login to the Github registry with NPM.
 
@@ -72,6 +96,20 @@ npm login --registry=https://npm.pkg.github.com
 
 ```
 npm install
+```
+
+If you are using docker to build and run this server, you will need to pass the github token along to the build process.
+
+Assign an environment variable to the Github Token locally:
+
+```bash
+export GITHUB_TOKEN=mytoken
+```
+
+For docker, you can run:
+
+```bash
+docker build -t --build-arg GTIHUB_TOKEN=${GITHUB_TOKEN} .
 ```
 
 4. Configure Environment Variables
@@ -92,16 +130,34 @@ In Production:
 npm start
 ```
 
-### Query the server
+## Querying the Server
 
-Use the graphql sandbox/playground to view available calls and query the server. By default this is at port 5001, `http://localhost:5001`
+Query the server as you would any other GraphQL server. Try using the sandbox/graphql playground located at the gateway's graphql url.
 
-## Docker Notes
+**Required Headers**
 
-When building, you will need to pass a Github Token as an ARG to the build process, so that it can pull the required packages from private repos.
+The gateway is responsible to pass headers to this micro-service. In general, the gateway will receive a encrypted JSON Web Token, decrypt it, and verify that is valid. If it is valid, the request is then sent to the external micro-services as headers.
 
-Simply set an environment variable on your system and it will pass automatically. Be sure to expire the token after building, as some docker processes can leak the plain text value.
+The microservice then can parse the headers and pass them as context to the resolvers, allowing the application to securely grant authorization at a resolver level.
 
+1. token: TokenContext as stringified json
+2. isauth: boolean as stringified json
+
+```ts
+interface DecodedToken {
+  account?: { _id: string; email: string };
+  user?: {
+    _id?: string;
+    role?: number;
+    email?: string;
+  };
+}
 ```
-export GITHUB_TOKEN=my_generated_token
-```
+
+## Recommended Services
+
+- `@the-devoyage/graphql-users` - A Users Microservice to manage the members of accounts. While the `@the-devoyage/graphql-accounts` service does handle account authentication, it does not handle user authentication, meaning you will need to provide the user property to the request headers of this service. The recommended users service is compatible with this service, and works out of the box. [Purchase Access](https://basetools.io/checkout/dQe81uv0)
+
+- `@the-devoyage/graphql-gateway` - A ready to go apollo gateway server with preconfigured features such as user authorization, file serving/uploading, and supergraph configuration. [Purchase Access](https://basetools.io/checkout/XGUVNNGr)
+
+- `@the-devoyage/graphql-mailer` - A ready to go mailer micro-service (GMAIL/GOOGLE) that allows templated and dynamic content to be sent to the users of your system. [Purchase Access](https://basetools.io/checkout/8G2fCyXe)

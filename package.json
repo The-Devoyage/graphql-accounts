@@ -1,10 +1,10 @@
 {
   "name": "@the-devoyage/graphql-accounts",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node app/dist/server.js",
+    "start": "node dist/server.js",
     "dev": "tsc -w & nodemon dist/server.js",
     "build": "tsc",
     "generate": "graphql-codegen"

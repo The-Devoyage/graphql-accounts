@@ -283,7 +283,7 @@ export const Mutation: MutationResolvers = {
         triggeredContent: {
           trigger: "RESET_ACTIVATION",
           to: account.email,
-          variables: account,
+          variables: { ...account, activation },
         },
         defaultContent: {
           to: account.email,
