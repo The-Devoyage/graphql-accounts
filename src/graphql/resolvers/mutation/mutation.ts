@@ -287,8 +287,8 @@ export const Mutation: MutationResolvers = {
         },
         defaultContent: {
           to: account.email,
-          html: `<h3>Success!</h3><p>Your new code is ${account.activation.code}</p>`,
-          plainText: `Welcome! Your activation code is ${account.activation.code}`,
+          html: `<h3>Success!</h3><p>Your new code is ${activation.code}</p>`,
+          plainText: `Welcome! Your activation code is ${activation.code}`,
           subject: "New Activation Code!",
         },
       });
