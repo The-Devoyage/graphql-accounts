@@ -5,7 +5,7 @@ import { MutationResolvers } from "types/generated";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { mailer } from "@src/helpers";
-import { Helpers } from "@the-devoyage/micro-auth-helpers";
+import { DecodedToken, Helpers } from "@the-devoyage/micro-auth-helpers";
 
 export const Mutation: MutationResolvers = {
   login: async (_, args) => {
@@ -38,7 +38,7 @@ export const Mutation: MutationResolvers = {
       );
 
       if (authenticated) {
-        const payload = {
+        const payload: DecodedToken = {
           account: { _id: account._id, email: account.email },
         };
 
