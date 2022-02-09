@@ -1,7 +1,7 @@
 import { GenerateMongo } from "@the-devoyage/mongo-filter-generator";
-import { checkAuth, limitRole } from "@src/helpers";
 import { Account } from "@src/models";
 import { QueryResolvers, Account as IAccount } from "types/generated";
+import { Helpers } from "@the-devoyage/micro-auth-helpers";
 
 export const Query: QueryResolvers = {
   isAuthenticated: async (_parent, _args, context) => {
@@ -9,9 +9,9 @@ export const Query: QueryResolvers = {
   },
   getMyAccount: async (_parent, _args, context) => {
     try {
-      checkAuth({ context });
+      Helpers.Resolver.CheckAuth({ context });
       const account = await Account.findOne({
-        _id: context.token.account?._id,
+        _id: context.auth.decodedToken?.account?._id,
       }).select("-password -activation.code");
       if (!account) {
         throw new Error("Can't find account");
@@ -24,9 +24,12 @@ export const Query: QueryResolvers = {
   },
   getAccounts: async (_parent, args, context) => {
     try {
-      checkAuth({ context, requireUser: true });
+      Helpers.Resolver.CheckAuth({ context, requireUser: true });
 
-      limitRole(context.token.user?.role, 1);
+      Helpers.Resolver.LimitRole({
+        userRole: context.auth.decodedToken?.user?.role,
+        roleLimit: 1,
+      });
 
       const { filters, options } = GenerateMongo({
         fieldFilters: args.getAccountsInput,

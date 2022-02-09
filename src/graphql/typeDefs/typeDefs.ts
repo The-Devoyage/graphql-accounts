@@ -1,3 +1,3 @@
-import { AccountTypes } from "./accounts";
+import { Account } from "./accounts";
 
-export const typeDefs = AccountTypes;
+export const typeDefs = { Account };
