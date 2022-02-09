@@ -1,14 +1,8 @@
 import { Resolvers } from "types/generated";
-import {
-  DateTimeScalar,
-  GraphQLObjectID,
-} from "@the-devoyage/mongo-filter-generator";
-import { Account, Mutation, Query } from "./";
+import { Account } from "./account";
+import { Query } from "./query";
+import { Mutation } from "./mutation";
 
 export const resolvers: Resolvers = {
-  Account,
-  DateTime: DateTimeScalar,
-  Query,
-  Mutation,
-  ObjectId: GraphQLObjectID,
+  Account: { Account, Query, Mutation },
 };

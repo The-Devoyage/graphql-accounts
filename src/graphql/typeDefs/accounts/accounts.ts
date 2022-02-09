@@ -1,6 +1,6 @@
 import { gql } from "apollo-server-express";
 
-export const AccountTypes = gql`
+export const Account = gql`
   type Account @key(fields: "_id") {
     _id: ObjectID!
     email: String!

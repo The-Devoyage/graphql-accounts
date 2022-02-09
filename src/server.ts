@@ -7,24 +7,12 @@ mongoose.plugin(findAndPaginatePlugin);
 import { schema } from "./graphql";
 import { applyMiddleware } from "graphql-middleware";
 import { ApolloServer } from "apollo-server";
-import { Context, TokenContext } from "types/context";
+import { Helpers } from "@the-devoyage/micro-auth-helpers";
 dotenv.config();
 
 const apolloServer = new ApolloServer({
   schema: applyMiddleware(schema),
-  context: ({ req }): Context => {
-    const { token, isauth } = req.headers;
-    let parsedToken: TokenContext = {};
-    let parsedAuthStatus: boolean = false;
-    if (token !== "undefined" && typeof token === "string") {
-      parsedToken = JSON.parse(token);
-    }
-    if (isauth !== "undefined" && typeof isauth === "string") {
-      parsedAuthStatus = JSON.parse(isauth);
-    }
-
-    return { token: parsedToken, isAuth: parsedAuthStatus };
-  },
+  context: ({ req }) => Helpers.Service.GenerateContext({ req }),
 });
 
 let DB = process.env.MONGO_URI!;

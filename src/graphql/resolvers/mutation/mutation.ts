@@ -1,11 +1,11 @@
-import { checkAuth, createActivationCode } from "@src/helpers";
 import { Account } from "@src/models";
 import { Validate } from "@src/validate";
 import { UserInputError } from "apollo-server";
 import { MutationResolvers } from "types/generated";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { mailer } from "@src/helpers/mailer";
+import { mailer } from "@src/helpers";
+import { Helpers } from "@the-devoyage/micro-auth-helpers";
 
 export const Mutation: MutationResolvers = {
   login: async (_, args) => {
@@ -86,7 +86,11 @@ export const Mutation: MutationResolvers = {
 
       const newAccount = new Account(args.registerInput);
 
-      newAccount.activation = createActivationCode();
+      newAccount.activation = Helpers.Resolver.CreateActivationCode({
+        codeLength: 6,
+        codeLimit: { unit: "h", value: 4 },
+      });
+
       newAccount.password = await bcrypt.hash(args.registerInput.password, 12);
 
       await newAccount.save();
@@ -267,7 +271,10 @@ export const Mutation: MutationResolvers = {
         );
       }
 
-      const activation = createActivationCode();
+      const activation = Helpers.Resolver.CreateActivationCode({
+        codeLimit: { unit: "h", value: 4 },
+        codeLength: 6,
+      });
 
       const updatedAccount = await Account.findOneAndUpdate(
         { _id: account._id },
@@ -305,7 +312,7 @@ export const Mutation: MutationResolvers = {
     );
 
     try {
-      checkAuth({ context });
+      Helpers.Resolver.CheckAuth({ context });
       if (!isValid) {
         throw new UserInputError("Invalid data.", { errors });
       }

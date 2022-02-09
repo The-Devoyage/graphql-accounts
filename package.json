@@ -1,6 +1,6 @@
 {
   "name": "@the-devoyage/graphql-accounts",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "",
   "main": "server.js",
   "scripts": {
@@ -24,7 +24,8 @@
   "dependencies": {
     "@apollo/federation": "^0.29.1",
     "@the-devoyage/mailer-connect": "^0.1.1",
-    "@the-devoyage/mongo-filter-generator": "0.1.23",
+    "@the-devoyage/micro-auth-helpers": "^0.1.4",
+    "@the-devoyage/mongo-filter-generator": "0.2.0",
     "apollo-server": "^3.5.0",
     "bcryptjs": "^2.4.3",
     "dotenv": "^8.2.0",
