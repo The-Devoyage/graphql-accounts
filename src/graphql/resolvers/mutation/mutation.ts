@@ -318,7 +318,7 @@ export const Mutation: MutationResolvers = {
       }
 
       const account = await Account.findByIdAndUpdate(
-        { _id: context.token.account?._id },
+        { _id: context.auth.decodedToken?.account?._id },
         { email: args.updateEmailInput.email, activation: { verified: false } },
         { new: true }
       ).select("-password -activation.code");
