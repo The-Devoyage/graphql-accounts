@@ -5,7 +5,7 @@ import { Helpers } from "@the-devoyage/micro-auth-helpers";
 
 export const Query: QueryResolvers = {
   isAuthenticated: async (_parent, _args, context) => {
-    return context.isAuth;
+    return context.auth.isAuth ?? false;
   },
   getMyAccount: async (_parent, _args, context) => {
     try {
