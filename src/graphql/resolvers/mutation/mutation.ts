@@ -3,9 +3,8 @@ import { Validate } from "@src/validate";
 import { UserInputError } from "apollo-server";
 import { MutationResolvers } from "types/generated";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { mailer } from "@src/helpers";
-import { DecodedToken, Helpers } from "@the-devoyage/micro-auth-helpers";
+import { Helpers } from "@the-devoyage/micro-auth-helpers";
 
 export const Mutation: MutationResolvers = {
   login: async (_, args) => {
@@ -38,13 +37,14 @@ export const Mutation: MutationResolvers = {
       );
 
       if (authenticated) {
-        const payload: DecodedToken = {
-          account: { _id: account._id, email: account.email },
-        };
-
         if (process.env.JWT_ENCRYPTION_KEY) {
-          const token = jwt.sign(payload, process.env.JWT_ENCRYPTION_KEY, {
-            expiresIn: "10h",
+          const token = Helpers.Resolver.GenerateToken({
+            secretOrPublicKey: process.env.JWT_ENCRYPTION_KEY,
+            payload: {
+              account: { _id: account._id, email: account.email },
+              user: null,
+            },
+            options: { expiresIn: "10h" },
           });
 
           if (token) {
@@ -318,7 +318,7 @@ export const Mutation: MutationResolvers = {
       }
 
       const account = await Account.findByIdAndUpdate(
-        { _id: context.auth.decodedToken?.account?._id },
+        { _id: context.auth.payload?.account?._id },
         { email: args.updateEmailInput.email, activation: { verified: false } },
         { new: true }
       ).select("-password -activation.code");

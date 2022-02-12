@@ -11,7 +11,7 @@ export const Query: QueryResolvers = {
     try {
       Helpers.Resolver.CheckAuth({ context });
       const account = await Account.findOne({
-        _id: context.auth.decodedToken?.account?._id,
+        _id: context.auth.payload.account?._id,
       }).select("-password -activation.code");
       if (!account) {
         throw new Error("Can't find account");
@@ -27,7 +27,7 @@ export const Query: QueryResolvers = {
       Helpers.Resolver.CheckAuth({ context, requireUser: true });
 
       Helpers.Resolver.LimitRole({
-        userRole: context.auth.decodedToken?.user?.role,
+        userRole: context.auth.payload.user?.role,
         roleLimit: 1,
       });
 

@@ -5,14 +5,13 @@ import { findAndPaginatePlugin } from "@the-devoyage/mongo-filter-generator";
 import mongoose from "mongoose";
 mongoose.plugin(findAndPaginatePlugin);
 import { schema } from "./graphql";
-import { applyMiddleware } from "graphql-middleware";
 import { ApolloServer } from "apollo-server";
 import { Helpers } from "@the-devoyage/micro-auth-helpers";
 dotenv.config();
 
 const apolloServer = new ApolloServer({
-  schema: applyMiddleware(schema),
-  context: ({ req }) => Helpers.Service.GenerateContext({ req }),
+  schema: schema,
+  context: ({ req }) => Helpers.Subgraph.GenerateContext({ req }),
 });
 
 let DB = process.env.MONGO_URI!;
