@@ -11,7 +11,11 @@ dotenv.config();
 
 const apolloServer = new ApolloServer({
   schema: schema,
-  context: ({ req }) => Helpers.Subgraph.GenerateContext({ req }),
+  context: ({ req }) => {
+    console.log(req.headers.context);
+    const context = Helpers.Subgraph.GenerateContext({ req });
+    return context;
+  },
 });
 
 let DB = process.env.MONGO_URI!;

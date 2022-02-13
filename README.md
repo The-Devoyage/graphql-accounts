@@ -80,19 +80,13 @@ The `@the-devoyage/accounts` repo is a private repository. To gain instant acces
 
 ### Install Dependencies
 
-1. Required External Dependencies
-
-- `@the-devoyage/mongo-filter-generator` - Adds the pagination and filtering abilities to the service. [Purchase Access](https://basetools.io/checkout/vyOL9ATx)
-
-- `@the-devoyage/mailer-connect` - A simple package to streamline connecting to the mailer service and posting automated email webhooks. [Purchase Access](https://basetools.io/checkout/wp7QYNNO)
-
-2. Once you have access to the required repos above, be sure to login to the Github registry with NPM.
+1. Login to the Github registry with NPM.
 
 ```
 npm login --registry=https://npm.pkg.github.com
 ```
 
-3. Install Dependencies
+2. Install Dependencies
 
 ```
 npm install
@@ -132,25 +126,24 @@ npm start
 
 ## Querying the Server
 
-Query the server as you would any other GraphQL server. Try using the sandbox/graphql playground located at the gateway's graphql url.
+The server should sit behind a federated gateway. Query the gateway to query the server. Use the Apollo Sandbox for generated documentation on available resolvers and queries.
 
 **Required Headers**
 
-The gateway is responsible to pass headers to this micro-service. In general, the gateway will receive a encrypted JSON Web Token, decrypt it, and verify that is valid. If it is valid, the request is then sent to the external micro-services as headers.
-
-The microservice then can parse the headers and pass them as context to the resolvers, allowing the application to securely grant authorization at a resolver level.
-
-1. token: TokenContext as stringified json
-2. isauth: boolean as stringified json
+All routes within this service require a `context` header to be passed with the request. The `context` header should be stringified JSON of the type Context. Be sure to include the `auth` property.
 
 ```ts
-interface DecodedToken {
-  account?: { _id: string; email: string };
-  user?: {
-    _id?: string;
-    role?: number;
-    email?: string;
+interface Context extends Record<string, any> {
+  auth: {
+    account: { _id: string; email: string } | null;
+    user: {
+      _id: string;
+      role: number;
+      email: string;
+    } | null;
+    isAuth: boolean;
   };
+  // ...context
 }
 ```
 
