@@ -4,9 +4,7 @@ An easy to spin up accounts microservice that can be used as a ready to go servi
 
 ## Features
 
-### Account
-
-Each account is referenced by a unique `_id` and unique `email`. The `activation` property stores a unique code used with 2fa verification, and an activation status. The code is also only valid 24 hours.
+Use this service as a primary authentication method, allowing each user to create their own `Account`.
 
 ```graphql
 type Account {
@@ -65,7 +63,7 @@ Webhooks are posted with the `@the-devoyage/mailer-connect` package, to a URI th
 
 The following functions will trigger the mailer webhook:
 
-- Register Success - Account holder receives email with verification code.
+- Register - Account holder receives email with verification code.
 - Password Reset - Account holder receives email with verification code.
 - Verify Email - Account holder receives notification of success.
 - Reset Activation Code - Account holder receives email with verification code.
@@ -94,7 +92,7 @@ npm install
 
 If you are using docker to build and run this server, you will need to pass the github token along to the build process.
 
-Assign an environment variable to the Github Token locally:
+Assign an environment variable to the Github Token locally as the Dockerfile is built to look for the token within env vars. Be sure to expire the token after use.
 
 ```bash
 export GITHUB_TOKEN=mytoken
@@ -106,7 +104,7 @@ For docker, you can run:
 docker build -t --build-arg GTIHUB_TOKEN=${GITHUB_TOKEN} .
 ```
 
-4. Configure Environment Variables
+### Configure Environment Variables
 
 All environment variables are saved in the root of this repo in a file called `.env.example`. Move this file to `.env` and fill in the variables.
 
