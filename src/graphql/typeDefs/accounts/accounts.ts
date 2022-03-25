@@ -57,19 +57,21 @@ export const Account = gql`
   }
 
   input GetAccountsActivationInput {
-    verified: BooleanFieldFilter!
+    verified: [BooleanFieldFilter!]!
   }
 
   input GetAccountsInput {
-    _id: StringFieldFilter
-    email: StringFieldFilter
+    _id: [StringFieldFilter]
+    email: [StringFieldFilter]
     activation: GetAccountsActivationInput
     config: FilterConfig
+    createdAt: [DateFieldFilter]
+    updatedAt: [DateFieldFilter]
   }
 
   type GetAccountsResponse {
-    data: [Account!]
-    stats: Stats
+    data: [Account!]!
+    stats: Stats!
   }
 
   extend type Query {
