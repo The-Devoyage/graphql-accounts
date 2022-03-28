@@ -1,7 +1,7 @@
 import { Account } from "@src/models";
 import { Validate } from "@src/validate";
 import { UserInputError } from "apollo-server";
-import { MutationResolvers } from "types/generated";
+import { MutationResolvers, Account as IAccount } from "types/generated";
 import bcrypt from "bcryptjs";
 import { mailer } from "@src/helpers";
 import { Helpers } from "@the-devoyage/micro-auth-helpers";
@@ -15,7 +15,7 @@ export const Mutation: MutationResolvers = {
         throw new UserInputError("Invalid data.", { errors });
       }
 
-      const account = await Account.findOne({
+      const account = await Account.findOne<IAccount>({
         email: args.loginInput.email,
       });
 
@@ -48,7 +48,7 @@ export const Mutation: MutationResolvers = {
           });
 
           if (token) {
-            const accountResponse = await Account.findOne({
+            const accountResponse = await Account.findOne<IAccount>({
               _id: account._id,
             }).select("-password -activation.code");
             if (!accountResponse) {
@@ -84,18 +84,22 @@ export const Mutation: MutationResolvers = {
         throw new Error("Account already exists");
       }
 
-      const newAccount = new Account(args.registerInput);
-
-      newAccount.activation = Helpers.Resolver.CreateActivationCode({
+      const activation = Helpers.Resolver.CreateActivationCode({
         codeLength: 6,
         codeLimit: { unit: "h", value: 4 },
       });
 
-      newAccount.password = await bcrypt.hash(args.registerInput.password, 12);
+      const hashed = await bcrypt.hash(args.registerInput.password, 12);
+
+      const newAccount = new Account({
+        ...args.registerInput,
+        activation: activation,
+        password: hashed,
+      });
 
       await newAccount.save();
 
-      const account = await Account.findById(newAccount._id).select(
+      const account = await Account.findById<IAccount>(newAccount._id).select(
         "-password -activation.code"
       );
 
@@ -111,8 +115,8 @@ export const Mutation: MutationResolvers = {
         },
         defaultContent: {
           to: account.email,
-          html: `<h3>Welcome!</h3><p>Your code is ${newAccount.activation.code}</p>`,
-          plainText: `Welcome! Your activation code is ${newAccount.activation.code}`,
+          html: `<h3>Welcome!</h3><p>Your code is ${activation.code}</p>`,
+          plainText: `Welcome! Your activation code is ${activation.code}`,
           subject: "Thanks for signing up!",
         },
       });
@@ -135,7 +139,7 @@ export const Mutation: MutationResolvers = {
         throw new Error("Incomplete data");
       }
 
-      const account = await Account.findOne({
+      const account = await Account.findOne<IAccount>({
         email: args.verifyEmailInput.email,
       });
 
@@ -148,7 +152,7 @@ export const Mutation: MutationResolvers = {
         args.verifyEmailInput.code === account.activation.code &&
         account.activation.limit > Date.now()
       ) {
-        const updatedAccount = await Account.findByIdAndUpdate(
+        const updatedAccount = await Account.findByIdAndUpdate<IAccount>(
           { _id: account._id },
           { $set: { "activation.verified": true } },
           { new: true }
@@ -191,7 +195,9 @@ export const Mutation: MutationResolvers = {
       throw new UserInputError("Invalid data.", { errors });
     }
     try {
-      const account = await Account.findOne({ email: args.resetInput.email });
+      const account = await Account.findOne<IAccount>({
+        email: args.resetInput.email,
+      });
 
       if (!account) {
         throw new Error("Something went wrong when resetting password.");
@@ -204,7 +210,7 @@ export const Mutation: MutationResolvers = {
       ) {
         const hashed = await bcrypt.hash(args.resetInput.password, 12);
 
-        const updatedAccount = await Account.findByIdAndUpdate(
+        const updatedAccount = await Account.findByIdAndUpdate<IAccount>(
           { _id: account._id },
           { $set: { password: hashed } },
           { new: true }
@@ -261,7 +267,7 @@ export const Mutation: MutationResolvers = {
       if (!args.resetCodeInput.email) {
         throw new Error("Please provide a valid email.");
       }
-      const account = await Account.findOne({
+      const account = await Account.findOne<IAccount>({
         email: args.resetCodeInput.email,
       });
 
@@ -276,7 +282,7 @@ export const Mutation: MutationResolvers = {
         codeLength: 6,
       });
 
-      const updatedAccount = await Account.findOneAndUpdate(
+      const updatedAccount = await Account.findOneAndUpdate<IAccount>(
         { _id: account._id },
         { $set: { activation } },
         { new: true }
@@ -317,7 +323,7 @@ export const Mutation: MutationResolvers = {
         throw new UserInputError("Invalid data.", { errors });
       }
 
-      const account = await Account.findByIdAndUpdate(
+      const account = await Account.findByIdAndUpdate<IAccount>(
         { _id: context.auth.payload?.account?._id },
         { email: args.updateEmailInput.email, activation: { verified: false } },
         { new: true }
@@ -338,7 +344,8 @@ export const Mutation: MutationResolvers = {
           to: account.email,
           plainText:
             "Your email has been updated. Please re-verify your account.",
-          html: "<h3>Success!</h3><p>Your email has been updated. Please re-verify your account.</p>",
+          html:
+            "<h3>Success!</h3><p>Your email has been updated. Please re-verify your account.</p>",
         },
       });
 

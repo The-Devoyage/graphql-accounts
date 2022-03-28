@@ -18,12 +18,7 @@ const DB = process.env.MONGO_URI;
 
 if (DB) {
   mongoose
-    .connect(DB, {
-      useUnifiedTopology: true,
-      useNewUrlParser: true,
-      useCreateIndex: true,
-      useFindAndModify: false,
-    })
+    .connect(DB)
     .then(() => console.log("Accounts DB Connected to Accounts Service!"))
     .catch((err) => console.log(err));
 } else {

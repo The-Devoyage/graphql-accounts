@@ -10,7 +10,7 @@ export const Query: QueryResolvers = {
   getMyAccount: async (_parent, _args, context) => {
     try {
       Helpers.Resolver.CheckAuth({ context });
-      const account = await Account.findOne({
+      const account = await Account.findOne<IAccount>({
         _id: context.auth.payload.account?._id,
       }).select("-password -activation.code");
       if (!account) {
@@ -33,7 +33,7 @@ export const Query: QueryResolvers = {
 
       const { filter, options } = GenerateMongo({
         fieldFilters: args.getAccountsInput,
-        config: args.getAccountsInput.config!,
+        config: args.getAccountsInput.config,
       });
 
       const accounts = await Account.findAndPaginate<IAccount>(filter, options);
