@@ -1,10 +1,12 @@
 # @the-devoyage/graphql-accounts
 
-An easy to spin up accounts microservice that can be used as a ready to go service for managing authentication or a starting point to customize your own accounts service.
+The Devoyage's GraphQL Accounts Service is a production ready Authentication Application that can be added to any API. Use the code as is, or as a starter for your next web application. Easilly enable features such as Account Registration, Login, Password Reset, and 2fa.
 
 ## Features
 
-Use this service as a primary authentication method, allowing each user to create their own `Account`.
+### Create Accounts
+
+Accounts are saved to the database with the following shape.
 
 ```graphql
 type Account {
@@ -72,10 +74,6 @@ If you need a easy to start up Mailer Service, the [@The-Devoyage/graphql-mailer
 
 ## Usage
 
-### Purchase Access and Clone Repo
-
-The `@the-devoyage/accounts` repo is a private repository. To gain instant access to the code base, complete the [Basetools Checkout](https://basetools.io/checkout/v0cv56df) process. Once completed, you will be instantly added as a collaborator, allowing you to clone the repository.
-
 ### Install Dependencies
 
 1. Login to the Github registry with NPM.
@@ -91,12 +89,6 @@ npm install
 ```
 
 If you are using docker to build and run this server, you will need to pass the github token along to the build process.
-
-Assign an environment variable to the Github Token locally as the Dockerfile is built to look for the token within env vars. Be sure to expire the token after use.
-
-```bash
-export GITHUB_TOKEN=mytoken
-```
 
 For docker, you can run:
 
@@ -141,14 +133,24 @@ interface Context extends Record<string, any> {
     } | null;
     isAuth: boolean;
   };
-  // ...context
+  // ...your context
 }
 ```
 
-## Recommended Services
+## Usage
 
-- `@the-devoyage/graphql-users` - A Users Microservice to manage the members of accounts. While the `@the-devoyage/graphql-accounts` service does handle account authentication, it does not handle user authentication, meaning you will need to provide the user property to the request headers of this service. The recommended users service is compatible with this service. [Purchase Access](https://basetools.io/checkout/dQe81uv0)
+Once started, you may query the server through the parent gateway.
 
-- `@the-devoyage/graphql-gateway` - An apollo gateway server with pre-configured features such as user authorization, file routing/file upload routing, and supergraph configuration. This repo is compatible with this service and can act as the gateway for this service. [Purchase Access](https://basetools.io/checkout/XGUVNNGr)
+### 1. Register
 
-- `@the-devoyage/graphql-mailer` - An automated mailer micro-service (GMAIL/GOOGLE) that allows templated and dynamic content to be sent to the users of your system. This repo is compatible with this service and the `mailer-connect` package that this service uses. [Purchase Access](https://basetools.io/checkout/8G2fCyXe)
+To register a user, you must send a request containing two copies of the password and an email to the `register` resolver.
+
+### 2. Verify Email
+
+By default, access is not granted until the email that was used to register is verified. Use the `code` sent from the email webhook to verify the user with the `verifyEmail` resolver.
+
+Activation codes have a default lifespan of 24 hours. Use the `resetActivationCode` resolver to request a new code. Codes are stored as plain text in the Database if you need to manually check. Codes are never returned from a request to the API for security reasons.
+
+### 3. Login to the Account
+
+Once verified, you may login using the `login` resolver to request a Signed JSON Web Token. The token is signed with a password set from your environment variables. You may then use the token to authenticate the user throughout the API as you wish. The recommended approach being to authenticate the token with a [GraphQL Gateway](https://thedevoyage.gumroad.com/l/graphql-gateway).
