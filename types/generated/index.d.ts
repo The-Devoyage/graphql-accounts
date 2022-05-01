@@ -13,7 +13,6 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
   DateTime: any;
   ObjectID: any;
   _Any: any;
@@ -41,53 +40,67 @@ export enum ArrayFilterByEnum {
   Nin = 'NIN'
 }
 
-export type BooleanArrayFilter = {
-  arrayOptions: ArrayFilterByEnum;
-  bool: Scalars['Boolean'];
-  filterBy: BooleanFilterByEnum;
-};
-
+/** Filter for documents which have a property that is a Boolean. */
 export type BooleanFieldFilter = {
   bool: Scalars['Boolean'];
   filterBy: BooleanFilterByEnum;
+  groups?: InputMaybe<Array<Scalars['String']>>;
+  operator?: InputMaybe<OperatorFieldConfigEnum>;
 };
 
+/** Equal or Not Equal */
 export enum BooleanFilterByEnum {
   Eq = 'EQ',
   Ne = 'NE'
 }
 
-export type FilterConfig = {
+/** Filter for documents which have a property that is a Date. */
+export type DateFieldFilter = {
+  date: Scalars['DateTime'];
+  filterBy: DateFilterByEnum;
+  groups?: InputMaybe<Array<Scalars['String']>>;
   operator?: InputMaybe<OperatorFieldConfigEnum>;
+};
+
+export enum DateFilterByEnum {
+  Eq = 'EQ',
+  Gt = 'GT',
+  Gte = 'GTE',
+  Lt = 'LT',
+  Lte = 'LTE',
+  Ne = 'NE'
+}
+
+/** Global configuration details. */
+export type FilterConfig = {
   pagination?: InputMaybe<Pagination>;
 };
 
 export type GetAccountsActivationInput = {
-  verified: BooleanFieldFilter;
+  verified: Array<BooleanFieldFilter>;
 };
 
 export type GetAccountsInput = {
-  _id?: InputMaybe<StringFieldFilter>;
+  _id?: InputMaybe<Array<InputMaybe<StringFieldFilter>>>;
   activation?: InputMaybe<GetAccountsActivationInput>;
   config?: InputMaybe<FilterConfig>;
-  email?: InputMaybe<StringFieldFilter>;
+  createdAt?: InputMaybe<Array<InputMaybe<DateFieldFilter>>>;
+  email?: InputMaybe<Array<InputMaybe<StringFieldFilter>>>;
+  updatedAt?: InputMaybe<Array<InputMaybe<DateFieldFilter>>>;
 };
 
 export type GetAccountsResponse = {
   __typename?: 'GetAccountsResponse';
-  data?: Maybe<Array<Account>>;
-  stats?: Maybe<Stats>;
+  data: Array<Account>;
+  stats: Stats;
 };
 
-export type IntArrayFilter = {
-  arrayOptions: ArrayFilterByEnum;
-  filterBy: IntFilterByEnum;
-  int: Scalars['Int'];
-};
-
+/** Filter for documents which have a property that is an Integer. */
 export type IntFieldFilter = {
   filterBy: IntFilterByEnum;
+  groups?: InputMaybe<Array<Scalars['String']>>;
   int: Scalars['Int'];
+  operator?: InputMaybe<OperatorFieldConfigEnum>;
 };
 
 export enum IntFilterByEnum {
@@ -198,14 +211,20 @@ export type Stats = {
   total?: Maybe<Scalars['Int']>;
 };
 
-export type StringArrayFilter = {
+/** Filter for documents which have a property that is an array of strings.. */
+export type StringArrayFieldFilter = {
   arrayOptions: ArrayFilterByEnum;
   filterBy: StringFilterByEnum;
+  groups?: InputMaybe<Array<Scalars['String']>>;
+  operator?: InputMaybe<OperatorFieldConfigEnum>;
   string: Array<Scalars['String']>;
 };
 
+/** Filter for documents which have a property that is a string. Filter by REGEX, ObjectID, or Match. */
 export type StringFieldFilter = {
   filterBy: StringFilterByEnum;
+  groups?: InputMaybe<Array<Scalars['String']>>;
+  operator?: InputMaybe<OperatorFieldConfigEnum>;
   string: Scalars['String'];
 };
 
@@ -303,16 +322,16 @@ export type ResolversTypes = ResolversObject<{
   Activation: ResolverTypeWrapper<Activation>;
   ArrayFilterByEnum: ArrayFilterByEnum;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
-  BooleanArrayFilter: BooleanArrayFilter;
   BooleanFieldFilter: BooleanFieldFilter;
   BooleanFilterByEnum: BooleanFilterByEnum;
+  DateFieldFilter: DateFieldFilter;
+  DateFilterByEnum: DateFilterByEnum;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
   FilterConfig: FilterConfig;
   GetAccountsActivationInput: GetAccountsActivationInput;
   GetAccountsInput: GetAccountsInput;
   GetAccountsResponse: ResolverTypeWrapper<GetAccountsResponse>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
-  IntArrayFilter: IntArrayFilter;
   IntFieldFilter: IntFieldFilter;
   IntFilterByEnum: IntFilterByEnum;
   LoginAccountResponse: ResolverTypeWrapper<LoginAccountResponse>;
@@ -327,7 +346,7 @@ export type ResolversTypes = ResolversObject<{
   ResetPasswordInput: ResetPasswordInput;
   Stats: ResolverTypeWrapper<Stats>;
   String: ResolverTypeWrapper<Scalars['String']>;
-  StringArrayFilter: StringArrayFilter;
+  StringArrayFieldFilter: StringArrayFieldFilter;
   StringFieldFilter: StringFieldFilter;
   StringFilterByEnum: StringFilterByEnum;
   UpdateEmailInput: UpdateEmailInput;
@@ -343,15 +362,14 @@ export type ResolversParentTypes = ResolversObject<{
   Account: Account;
   Activation: Activation;
   Boolean: Scalars['Boolean'];
-  BooleanArrayFilter: BooleanArrayFilter;
   BooleanFieldFilter: BooleanFieldFilter;
+  DateFieldFilter: DateFieldFilter;
   DateTime: Scalars['DateTime'];
   FilterConfig: FilterConfig;
   GetAccountsActivationInput: GetAccountsActivationInput;
   GetAccountsInput: GetAccountsInput;
   GetAccountsResponse: GetAccountsResponse;
   Int: Scalars['Int'];
-  IntArrayFilter: IntArrayFilter;
   IntFieldFilter: IntFieldFilter;
   LoginAccountResponse: LoginAccountResponse;
   LoginInput: LoginInput;
@@ -364,7 +382,7 @@ export type ResolversParentTypes = ResolversObject<{
   ResetPasswordInput: ResetPasswordInput;
   Stats: Stats;
   String: Scalars['String'];
-  StringArrayFilter: StringArrayFilter;
+  StringArrayFieldFilter: StringArrayFieldFilter;
   StringFieldFilter: StringFieldFilter;
   UpdateEmailInput: UpdateEmailInput;
   VerifyEmailInput: VerifyEmailInput;
@@ -400,8 +418,8 @@ export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 }
 
 export type GetAccountsResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['GetAccountsResponse'] = ResolversParentTypes['GetAccountsResponse']> = ResolversObject<{
-  data?: Resolver<Maybe<Array<ResolversTypes['Account']>>, ParentType, ContextType>;
-  stats?: Resolver<Maybe<ResolversTypes['Stats']>, ParentType, ContextType>;
+  data?: Resolver<Array<ResolversTypes['Account']>, ParentType, ContextType>;
+  stats?: Resolver<ResolversTypes['Stats'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

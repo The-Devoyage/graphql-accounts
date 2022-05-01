@@ -1,6 +1,7 @@
-import mongoose from "mongoose";
+import mongoose, { CallbackError } from "mongoose";
 import { Account } from "types/generated";
 import { FindAndPaginateModel } from "@the-devoyage/mongo-filter-generator";
+import { ApolloError } from "apollo-server";
 
 const Schema = mongoose.Schema;
 
@@ -9,6 +10,7 @@ const AccountSchema = new Schema<Account, FindAndPaginateModel>(
     email: {
       type: String,
       required: true,
+      lowercase: true,
       unique: true,
     },
     activation: {
@@ -22,6 +24,44 @@ const AccountSchema = new Schema<Account, FindAndPaginateModel>(
     },
   },
   { timestamps: true }
+);
+
+type NextFunction = (err?: CallbackError) => void;
+interface Error {
+  code: number;
+  name: string;
+}
+
+AccountSchema.post(
+  "save",
+  function (error: Partial<Error>, _: Account, next: NextFunction) {
+    if (error.code === 11000 && error.name === "MongoServerError") {
+      next(
+        new ApolloError(
+          "A account with this email already exists.",
+          "DUPLICATE_ACCOUNT"
+        )
+      );
+    } else {
+      next();
+    }
+  }
+);
+
+AccountSchema.post(
+  "update",
+  function (error: Partial<Error>, _: Account, next: NextFunction) {
+    if (error.code === 11000 && error.name === "MongoServerError") {
+      next(
+        new ApolloError(
+          "A account with this email already exists.",
+          "DUPLICATE_ACCOUNT"
+        )
+      );
+    } else {
+      next();
+    }
+  }
 );
 
 const Account = mongoose.model<Account, FindAndPaginateModel>(

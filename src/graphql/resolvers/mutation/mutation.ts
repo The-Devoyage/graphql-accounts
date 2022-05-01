@@ -107,19 +107,21 @@ export const Mutation: MutationResolvers = {
         throw new Error("Can't find account.");
       }
 
-      mailer.send({
-        triggeredContent: {
-          trigger: "REGISTER",
-          to: account.email,
-          variables: account,
-        },
-        defaultContent: {
-          to: account.email,
-          html: `<h3>Welcome!</h3><p>Your code is ${activation.code}</p>`,
-          plainText: `Welcome! Your activation code is ${activation.code}`,
-          subject: "Thanks for signing up!",
-        },
-      });
+      if (mailer) {
+        mailer.send({
+          triggeredContent: {
+            trigger: "REGISTER",
+            to: account.email,
+            variables: account,
+          },
+          defaultContent: {
+            to: account.email,
+            html: `<h3>Welcome!</h3><p>Your code is ${activation.code}</p>`,
+            plainText: `Welcome! Your activation code is ${activation.code}`,
+            subject: "Thanks for signing up!",
+          },
+        });
+      }
 
       return account;
     } catch (error) {
@@ -162,19 +164,21 @@ export const Mutation: MutationResolvers = {
           throw new Error("Could not update account.");
         }
 
-        mailer.send({
-          triggeredContent: {
-            to: account.email,
-            trigger: "VERIFY_EMAIL",
-            variables: account,
-          },
-          defaultContent: {
-            to: account.email,
-            subject: "Email Verified",
-            plainText: "Your email has been verified!",
-            html: "<h3>Success!</h3><p>Your email has been verified!</p>",
-          },
-        });
+        if (mailer) {
+          mailer.send({
+            triggeredContent: {
+              to: account.email,
+              trigger: "VERIFY_EMAIL",
+              variables: account,
+            },
+            defaultContent: {
+              to: account.email,
+              subject: "Email Verified",
+              plainText: "Your email has been verified!",
+              html: "<h3>Success!</h3><p>Your email has been verified!</p>",
+            },
+          });
+        }
 
         return updatedAccount;
       } else {
@@ -220,19 +224,21 @@ export const Mutation: MutationResolvers = {
           throw new Error("Something went wrong when saving the changes.");
         }
 
-        mailer.send({
-          triggeredContent: {
-            to: updatedAccount.email,
-            trigger: "PASSWORD_RESET",
-            variables: account,
-          },
-          defaultContent: {
-            to: updatedAccount.email,
-            html: "<h3>Success!</h3><p>Your password has been reset.</p>",
-            plainText: "Success! Your password has been reset!",
-            subject: "Password Reset",
-          },
-        });
+        if (mailer) {
+          mailer.send({
+            triggeredContent: {
+              to: updatedAccount.email,
+              trigger: "PASSWORD_RESET",
+              variables: account,
+            },
+            defaultContent: {
+              to: updatedAccount.email,
+              html: "<h3>Success!</h3><p>Your password has been reset.</p>",
+              plainText: "Success! Your password has been reset!",
+              subject: "Password Reset",
+            },
+          });
+        }
 
         return updatedAccount;
       } else if (
@@ -292,19 +298,21 @@ export const Mutation: MutationResolvers = {
         throw new Error("Soemthing went wrong when saving new updates.");
       }
 
-      mailer.send({
-        triggeredContent: {
-          trigger: "RESET_ACTIVATION",
-          to: account.email,
-          variables: { ...account, activation },
-        },
-        defaultContent: {
-          to: account.email,
-          html: `<h3>Success!</h3><p>Your new code is ${activation.code}</p>`,
-          plainText: `Welcome! Your activation code is ${activation.code}`,
-          subject: "New Activation Code!",
-        },
-      });
+      if (mailer) {
+        mailer.send({
+          triggeredContent: {
+            trigger: "RESET_ACTIVATION",
+            to: account.email,
+            variables: { ...account, activation },
+          },
+          defaultContent: {
+            to: account.email,
+            html: `<h3>Success!</h3><p>Your new code is ${activation.code}</p>`,
+            plainText: `Welcome! Your activation code is ${activation.code}`,
+            subject: "New Activation Code!",
+          },
+        });
+      }
 
       return updatedAccount;
     } catch (error) {
@@ -333,21 +341,22 @@ export const Mutation: MutationResolvers = {
         throw new Error("Something went wrong when updating your account.");
       }
 
-      mailer.send({
-        triggeredContent: {
-          trigger: "UPDATE_EMAIL",
-          to: account.email,
-          variables: account,
-        },
-        defaultContent: {
-          subject: "Email Updated",
-          to: account.email,
-          plainText:
-            "Your email has been updated. Please re-verify your account.",
-          html:
-            "<h3>Success!</h3><p>Your email has been updated. Please re-verify your account.</p>",
-        },
-      });
+      if (mailer) {
+        mailer.send({
+          triggeredContent: {
+            trigger: "UPDATE_EMAIL",
+            to: account.email,
+            variables: account,
+          },
+          defaultContent: {
+            subject: "Email Updated",
+            to: account.email,
+            plainText:
+              "Your email has been updated. Please re-verify your account.",
+            html: "<h3>Success!</h3><p>Your email has been updated. Please re-verify your account.</p>",
+          },
+        });
+      }
 
       return account;
     } catch (error) {
