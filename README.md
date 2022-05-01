@@ -4,7 +4,7 @@ The Devoyage's GraphQL Accounts Service is a production ready Authentication App
 
 ## License
 
-This repository provides a GPL License by default. If you want to use this product in a private commericial setting, you may purchase the MIT Licensed Version [Here!](https://thedevoyage.gumroad.com/l/graphql-gateway)
+This repository provides a GPL License by default. If you want to use this product in a private commericial setting, you may purchase the MIT Licensed Version [Here!](https://thedevoyage.gumroad.com/l/graphql-accounts)
 
 ## Features
 
