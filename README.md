@@ -2,6 +2,10 @@
 
 The Devoyage's GraphQL Accounts Service is a production ready Authentication Application that can be added to any API. Use the code as is, or as a starter for your next web application. Easilly enable features such as Account Registration, Login, Password Reset, and 2fa.
 
+## License
+
+This repository provides a GPL License by default. If you want to use this product in a private commericial setting, you may purchase the MIT Licensed Version [Here!](https://thedevoyage.gumroad.com/l/graphql-gateway)
+
 ## Features
 
 ### Create Accounts
