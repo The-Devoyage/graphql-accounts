@@ -1,6 +1,4 @@
 import { Account } from "@src/models";
-import { Validate } from "@src/validate";
-import { UserInputError } from "apollo-server";
 import { MutationResolvers, Account as IAccount } from "types/generated";
 import bcrypt from "bcryptjs";
 import { mailer } from "@src/helpers";
@@ -8,13 +6,7 @@ import { Helpers } from "@the-devoyage/micro-auth-helpers";
 
 export const Mutation: MutationResolvers = {
   login: async (_, args) => {
-    const { errors, isValid } = Validate.Accounts.Login(args.loginInput);
-
     try {
-      if (!isValid) {
-        throw new UserInputError("Invalid data.", { errors });
-      }
-
       const account = await Account.findOne<IAccount>({
         email: args.loginInput.email,
       });
@@ -69,11 +61,14 @@ export const Mutation: MutationResolvers = {
       throw error;
     }
   },
-  register: async (_parent, args) => {
-    const { errors, isValid } = Validate.Accounts.Register(args.registerInput);
+  register: async (_parent, args, context) => {
     try {
-      if (!isValid) {
-        throw new UserInputError("Invalid data.", { errors });
+      if (!args.registerInput.password) {
+        Helpers.Resolver.CheckAuth({ context, requireUser: true });
+        Helpers.Resolver.LimitRole({
+          userRole: context.auth.payload.user?.role,
+          roleLimit: 1,
+        });
       }
 
       const exists = await Account.exists({
@@ -89,12 +84,15 @@ export const Mutation: MutationResolvers = {
         codeLimit: { unit: "h", value: 4 },
       });
 
-      const hashed = await bcrypt.hash(args.registerInput.password, 12);
+      let password;
+      if (args.registerInput.password) {
+        password = await bcrypt.hash(args.registerInput.password, 12);
+      }
 
       const newAccount = new Account({
         ...args.registerInput,
         activation: activation,
-        password: hashed,
+        password,
       });
 
       await newAccount.save();
@@ -130,12 +128,6 @@ export const Mutation: MutationResolvers = {
     }
   },
   verifyEmail: async (_parent, args) => {
-    const { errors, isValid } = Validate.Accounts.VerifyEmail(
-      args.verifyEmailInput
-    );
-    if (!isValid) {
-      throw new UserInputError("Invalid data.", { errors });
-    }
     try {
       if (!args.verifyEmailInput.email || !args.verifyEmailInput.code) {
         throw new Error("Incomplete data");
@@ -152,7 +144,7 @@ export const Mutation: MutationResolvers = {
       if (
         account.activation?.limit &&
         args.verifyEmailInput.code === account.activation.code &&
-        account.activation.limit > Date.now()
+        account.activation.limit > new Date()
       ) {
         const updatedAccount = await Account.findByIdAndUpdate<IAccount>(
           { _id: account._id },
@@ -192,12 +184,6 @@ export const Mutation: MutationResolvers = {
     }
   },
   resetPassword: async (_parent, args) => {
-    const { errors, isValid } = Validate.Accounts.ResetPassword(
-      args.resetInput
-    );
-    if (!isValid) {
-      throw new UserInputError("Invalid data.", { errors });
-    }
     try {
       const account = await Account.findOne<IAccount>({
         email: args.resetInput.email,
@@ -210,7 +196,7 @@ export const Mutation: MutationResolvers = {
       if (
         account?.activation?.limit &&
         account.activation.code === args.resetInput.code &&
-        account.activation.limit > Date.now()
+        account.activation.limit > new Date()
       ) {
         const hashed = await bcrypt.hash(args.resetInput.password, 12);
 
@@ -243,14 +229,14 @@ export const Mutation: MutationResolvers = {
         return updatedAccount;
       } else if (
         account?.activation?.limit &&
-        account?.activation.limit < Date.now()
+        account?.activation.limit < new Date()
       ) {
         throw new Error(
           "The activation code expired - please request a new code and try again."
         );
       } else if (
         account?.activation?.limit &&
-        account.activation.limit > Date.now() &&
+        account.activation.limit > new Date() &&
         account.activation.code !== args.resetInput.code
       ) {
         throw new Error("Incorrect activation code.");
@@ -263,12 +249,6 @@ export const Mutation: MutationResolvers = {
     }
   },
   resetActivationCode: async (_parent, args) => {
-    const { errors, isValid } = Validate.Accounts.ResetActivationCode(
-      args.resetCodeInput
-    );
-    if (!isValid) {
-      throw new UserInputError("Invalid data.", { errors });
-    }
     try {
       if (!args.resetCodeInput.email) {
         throw new Error("Please provide a valid email.");
@@ -321,19 +301,31 @@ export const Mutation: MutationResolvers = {
     }
   },
   updateEmail: async (_parent, args, context) => {
-    const { isValid, errors } = Validate.Accounts.UpdateEmail(
-      args.updateEmailInput
-    );
-
     try {
-      Helpers.Resolver.CheckAuth({ context });
-      if (!isValid) {
-        throw new UserInputError("Invalid data.", { errors });
+      Helpers.Resolver.CheckAuth({ context, requireUser: true });
+
+      if (args.updateEmailInput.account !== context.auth.payload.account?._id) {
+        Helpers.Resolver.LimitRole({
+          userRole: context.auth.payload.user?.role,
+          roleLimit: 1,
+        });
       }
 
+      const activation = Helpers.Resolver.CreateActivationCode({
+        codeLength: 6,
+        codeLimit: { unit: "h", value: 4 },
+      });
+
       const account = await Account.findByIdAndUpdate<IAccount>(
-        { _id: context.auth.payload?.account?._id },
-        { email: args.updateEmailInput.email, activation: { verified: false } },
+        { _id: args.updateEmailInput.account },
+        {
+          email: args.updateEmailInput.email,
+          activation: {
+            verified: false,
+            code: activation.code,
+            limit: activation.limit,
+          },
+        },
         { new: true }
       ).select("-password -activation.code");
 
@@ -353,7 +345,7 @@ export const Mutation: MutationResolvers = {
             to: account.email,
             plainText:
               "Your email has been updated. Please re-verify your account.",
-            html: "<h3>Success!</h3><p>Your email has been updated. Please re-verify your account.</p>",
+            html: `<h3>Success!</h3><p>Your email has been updated. Please re-verify your account. Your new activation code is ${activation.code}</p>`,
           },
         });
       }
