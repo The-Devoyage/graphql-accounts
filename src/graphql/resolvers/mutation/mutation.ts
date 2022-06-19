@@ -31,7 +31,7 @@ export const Mutation: MutationResolvers = {
       if (authenticated) {
         if (process.env.JWT_ENCRYPTION_KEY) {
           const token = Helpers.Resolver.GenerateToken({
-            secretOrPublicKey: process.env.JWT_ENCRYPTION_KEY,
+            secretOrPrivateKey: process.env.JWT_ENCRYPTION_KEY,
             payload: {
               account: { _id: account._id, email: account.email },
               user: null,

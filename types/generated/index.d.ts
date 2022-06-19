@@ -13,6 +13,8 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  /** A country code as defined by ISO 3166-1 alpha-2 */
+  CountryCode: any;
   /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
   DateTime: Date;
   /** A field whose value conforms to the standard internet email address format as specified in RFC822: https://www.w3.org/Protocols/rfc822/. */
@@ -21,6 +23,10 @@ export type Scalars = {
   JWT: string;
   /** A field whose value conforms with the standard mongodb object ID as described here: https://docs.mongodb.com/manual/reference/method/ObjectId/#ObjectId. Example: 5e5677d71bdc2ae76344968c */
   ObjectID: string;
+  /** A field whose value conforms to the standard E.164 format as specified in: https://en.wikipedia.org/wiki/E.164. Basically this is +17895551234. */
+  PhoneNumber: any;
+  /** A field whose value conforms to the standard postal code formats for United States, United Kingdom, Germany, Canada, France, Italy, Australia, Netherlands, Spain, Denmark, Sweden, Belgium, India, Austria, Portugal, Switzerland or Luxembourg. */
+  PostalCode: any;
   _Any: any;
   federation__FieldSet: any;
   link__Import: any;
@@ -382,6 +388,7 @@ export type ResolversTypes = ResolversObject<{
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   BooleanFieldFilter: BooleanFieldFilter;
   BooleanFilterByEnum: BooleanFilterByEnum;
+  CountryCode: ResolverTypeWrapper<Scalars['CountryCode']>;
   DateFieldFilter: DateFieldFilter;
   DateFilterByEnum: DateFilterByEnum;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
@@ -404,6 +411,8 @@ export type ResolversTypes = ResolversObject<{
   ObjectID: ResolverTypeWrapper<Scalars['ObjectID']>;
   OperatorFieldConfigEnum: OperatorFieldConfigEnum;
   Pagination: Pagination;
+  PhoneNumber: ResolverTypeWrapper<Scalars['PhoneNumber']>;
+  PostalCode: ResolverTypeWrapper<Scalars['PostalCode']>;
   Query: ResolverTypeWrapper<{}>;
   RegisterInput: RegisterInput;
   ResetCodeInput: ResetCodeInput;
@@ -431,6 +440,7 @@ export type ResolversParentTypes = ResolversObject<{
   Activation: Activation;
   Boolean: Scalars['Boolean'];
   BooleanFieldFilter: BooleanFieldFilter;
+  CountryCode: Scalars['CountryCode'];
   DateFieldFilter: DateFieldFilter;
   DateTime: Scalars['DateTime'];
   EmailAddress: Scalars['EmailAddress'];
@@ -449,6 +459,8 @@ export type ResolversParentTypes = ResolversObject<{
   Mutation: {};
   ObjectID: Scalars['ObjectID'];
   Pagination: Pagination;
+  PhoneNumber: Scalars['PhoneNumber'];
+  PostalCode: Scalars['PostalCode'];
   Query: {};
   RegisterInput: RegisterInput;
   ResetCodeInput: ResetCodeInput;
@@ -535,6 +547,10 @@ export type ActivationResolvers<ContextType = Context, ParentType extends Resolv
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export interface CountryCodeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['CountryCode'], any> {
+  name: 'CountryCode';
+}
+
 export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
   name: 'DateTime';
 }
@@ -592,6 +608,14 @@ export interface ObjectIdScalarConfig extends GraphQLScalarTypeConfig<ResolversT
   name: 'ObjectID';
 }
 
+export interface PhoneNumberScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['PhoneNumber'], any> {
+  name: 'PhoneNumber';
+}
+
+export interface PostalCodeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['PostalCode'], any> {
+  name: 'PostalCode';
+}
+
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   _entities?: Resolver<Array<Maybe<ResolversTypes['_Entity']>>, ParentType, ContextType, RequireFields<Query_EntitiesArgs, 'representations'>>;
   _service?: Resolver<ResolversTypes['_Service'], ParentType, ContextType>;
@@ -638,6 +662,7 @@ export interface Link__ImportScalarConfig extends GraphQLScalarTypeConfig<Resolv
 export type Resolvers<ContextType = Context> = ResolversObject<{
   Account?: AccountResolvers<ContextType>;
   Activation?: ActivationResolvers<ContextType>;
+  CountryCode?: GraphQLScalarType;
   DateTime?: GraphQLScalarType;
   EmailAddress?: GraphQLScalarType;
   GetAccountsResponse?: GetAccountsResponseResolvers<ContextType>;
@@ -647,6 +672,8 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   LoginAccountResponse?: LoginAccountResponseResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   ObjectID?: GraphQLScalarType;
+  PhoneNumber?: GraphQLScalarType;
+  PostalCode?: GraphQLScalarType;
   Query?: QueryResolvers<ContextType>;
   Stats?: StatsResolvers<ContextType>;
   VerifyEmailResponse?: VerifyEmailResponseResolvers<ContextType>;
