@@ -31,12 +31,22 @@ export const Query: QueryResolvers = {
         roleLimit: 1,
       });
 
-      const { filter, options } = GenerateMongo({
-        fieldFilters: args.getAccountsInput,
+      const { filter, options } = GenerateMongo<IAccount>({
+        fieldFilters: args.getAccountsInput.query,
         config: args.getAccountsInput.config,
       });
 
-      const accounts = await Account.findAndPaginate<IAccount>(filter, options);
+      const accounts = await Account.findAndPaginate<IAccount>(
+        filter,
+        options,
+        {
+          history: {
+            filter: {
+              interval: args.getAccountsInput.config?.history?.interval ?? [],
+            },
+          },
+        }
+      );
 
       return accounts;
     } catch (error) {

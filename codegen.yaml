@@ -5,6 +5,11 @@ generates:
       useIndexSignature: true
       federation: true
       contextType: "@the-devoyage/micro-auth-helpers#Context"
+      scalars:
+        JWT: string
+        EmailAddress: string
+        DateTime: Date
+        ObjectID: string
     plugins:
       - typescript
       - typescript-resolvers
