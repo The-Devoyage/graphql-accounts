@@ -24,7 +24,7 @@
   "dependencies": {
     "@apollo/subgraph": "^2.0.2",
     "@the-devoyage/mailer-connect": "^0.1.1",
-    "@the-devoyage/micro-auth-helpers": "^0.1.20",
+    "@the-devoyage/micro-auth-helpers": "^0.1.23",
     "@the-devoyage/mongo-filter-generator": "^0.4.0",
     "apollo-server": "^3.7.0",
     "bcryptjs": "^2.4.3",
