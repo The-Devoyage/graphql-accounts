@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+## [v0.2.1]
+- Model Schema Post Hook Fixed - Changed to `findOneAndUpdate` to catch duplicate key errors when updating documents.
+
 ## [v0.2.0]
 
 ### Added

@@ -49,7 +49,7 @@ AccountSchema.post(
 );
 
 AccountSchema.post(
-  "update",
+  "findOneAndUpdate",
   function (error: Partial<Error>, _: Account, next: NextFunction) {
     if (error.code === 11000 && error.name === "MongoServerError") {
       next(
