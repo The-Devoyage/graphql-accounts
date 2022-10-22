@@ -4,6 +4,7 @@
 
 ## [v0.2.1]
 - Model Schema Post Hook Fixed - Changed to `findOneAndUpdate` to catch duplicate key errors when updating documents.
+- Rename env var - `BACKEND_PORT` => `PORT`
 
 ## [v0.2.0]
 

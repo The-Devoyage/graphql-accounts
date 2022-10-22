@@ -25,7 +25,7 @@ if (DB) {
   console.log("MongoDB Not Connected: DATABASE URI NOT PROVIDED");
 }
 
-const port = process.env.BACKEND_PORT || 5001;
+const port = process.env.PORT || 5001;
 
 apolloServer
   .listen({ port })
