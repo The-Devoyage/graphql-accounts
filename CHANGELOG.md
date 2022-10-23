@@ -1,6 +1,7 @@
 # Changelog
 
-## [Unreleased]
+## [v0.2.2]
+- Remove requirements for Git Hub Tokens.
 
 ## [v0.2.1]
 - Model Schema Post Hook Fixed - Changed to `findOneAndUpdate` to catch duplicate key errors when updating documents.
